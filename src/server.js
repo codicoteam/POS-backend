@@ -1,3 +1,4 @@
+const http = require('http');
 const app = require('./app');
 const { PORT } = require('./config/environment');
 const { testConnection } = require('./config/database');
@@ -5,19 +6,22 @@ const { testConnection } = require('./config/database');
 async function startServer() {
   await testConnection();
 
-  const server = app.listen(PORT, () => {
-    console.log('RMS V1 server running on port ' + PORT);
-    console.log('API root: http://localhost:' + PORT + '/');
-    console.log('Health check: http://localhost:' + PORT + '/health');
-    console.log('Swagger docs: http://localhost:' + PORT + '/api-docs');
-  });
+  const server = http.createServer(app);
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${PORT} is already in use. Stop the other process or set a different PORT in your environment.`);
       process.exit(1);
     }
-    throw err;
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+
+  server.listen(PORT, () => {
+    console.log('RMS V1 server running on port ' + PORT);
+    console.log('API root: http://localhost:' + PORT + '/');
+    console.log('Health check: http://localhost:' + PORT + '/health');
+    console.log('Swagger docs: http://localhost:' + PORT + '/api-docs');
   });
 }
 
