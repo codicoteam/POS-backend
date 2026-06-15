@@ -9,7 +9,7 @@ INSERT INTO users (name, email, password_hash, role_id)
 VALUES (
   'Business Owner',
   'owner@rms.com',
-  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lihC',
+  '$2a$10$Wyf1A4YVxrQA60OXkcw9MO7zD5H/D.bYeop..qHirIp7JazmTLnBK',
   (SELECT id FROM roles WHERE name = 'owner')
 ) ON CONFLICT (email) DO NOTHING;
 
