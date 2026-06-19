@@ -1,15 +1,26 @@
 const { Pool } = require('pg');
 const env = require('./environment');
 
+const ssl = env.DB_SSL ? { rejectUnauthorized: false } : false;
+
+// Prefer a single DATABASE_URL connection string (the standard on Render/Heroku);
+// fall back to individual DB_* variables for local development.
+const poolConfig = env.DATABASE_URL
+  ? { connectionString: env.DATABASE_URL, ssl }
+  : {
+      host:     env.DB_HOST,
+      port:     env.DB_PORT,
+      database: env.DB_NAME,
+      user:     env.DB_USER,
+      password: env.DB_PASSWORD,
+      ssl,
+    };
+
 const pool = new Pool({
-  host:                    env.DB_HOST,
-  port:                    env.DB_PORT,
-  database:                env.DB_NAME,
-  user:                    env.DB_USER,
-  password:                env.DB_PASSWORD,
+  ...poolConfig,
   max:                     20,
   idleTimeoutMillis:       30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000,
 });
 
 pool.on('error', (err) => {
@@ -18,7 +29,8 @@ pool.on('error', (err) => {
 
 async function testConnection() {
   const client = await pool.connect();
-  console.log('PostgreSQL connected -> ' + env.DB_NAME + '@' + env.DB_HOST);
+  const target = env.DATABASE_URL ? 'DATABASE_URL' : env.DB_NAME + '@' + env.DB_HOST;
+  console.log('PostgreSQL connected -> ' + target + (ssl ? ' (SSL)' : ''));
   client.release();
 }
 
