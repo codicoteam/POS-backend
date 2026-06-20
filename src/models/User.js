@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = {
   async findByEmail(email) {
     const { rows } = await query(
-      `SELECT u.*, r.name AS role
+      `SELECT u.*, r.name AS role, u.must_change_password
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.email = $1`,
@@ -15,7 +15,7 @@ const User = {
 
   async findById(id) {
     const { rows } = await query(
-      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role
+      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role, u.must_change_password
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.id = $1`,
@@ -26,7 +26,7 @@ const User = {
 
   async findAll() {
     const { rows } = await query(
-      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role
+      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role, u.must_change_password
        FROM users u
        JOIN roles r ON r.id = u.role_id
        ORDER BY u.name`
@@ -34,13 +34,13 @@ const User = {
     return rows;
   },
 
-  async create({ name, email, password, role_id }) {
+  async create({ name, email, password, role_id, must_change_password = false }) {
     const hash = await bcrypt.hash(password, 10);
     const { rows } = await query(
-      `INSERT INTO users (name, email, password_hash, role_id)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO users (name, email, password_hash, role_id, must_change_password)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, name, email`,
-      [name, email, hash, role_id]
+      [name, email, hash, role_id, must_change_password]
     );
     return rows[0];
   },
@@ -58,7 +58,7 @@ const User = {
 
   async updatePassword(id, newPassword) {
     const hash = await bcrypt.hash(newPassword, 10);
-    await query('UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2', [hash, id]);
+    await query('UPDATE users SET password_hash=$1, must_change_password=false, updated_at=NOW() WHERE id=$2', [hash, id]);
   },
 
   async verifyPassword(plainText, hash) {

@@ -13,6 +13,10 @@ const customerRoutes  = require('./routes/customerRoutes');
 const salesRoutes     = require('./routes/salesRoutes');
 const reportRoutes    = require('./routes/reportRoutes');
 const whatsappRoutes  = require('./routes/whatsappRoutes');
+const expensesRoutes  = require('./routes/expensesRoutes');
+const shiftsRoutes    = require('./routes/shiftsRoutes');
+const devicesRoutes   = require('./routes/devicesRoutes');
+const syncRoutes      = require('./routes/syncRoutes');
 
 const app = express();
 
@@ -41,6 +45,10 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/sales',     salesRoutes);
 app.use('/api/reports',   reportRoutes);
 app.use('/api/whatsapp',  whatsappRoutes);
+app.use('/api/expenses',  expensesRoutes);
+app.use('/api/shifts',    shiftsRoutes);
+app.use('/api/devices',   devicesRoutes);
+app.use('/api/sync',      syncRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route ' + req.originalUrl + ' not found' }));
 app.use(errorHandler);

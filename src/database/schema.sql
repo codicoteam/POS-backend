@@ -157,3 +157,55 @@ INSERT INTO roles (name) VALUES
   ('cashier'),
   ('inventory_clerk')
 ON CONFLICT (name) DO NOTHING;
+
+-- ================================================================
+-- New: Expenses, Shifts, Devices, and user flag for forced password change
+-- ================================================================
+
+-- Add must_change_password to users (if not present)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name='users' AND column_name='must_change_password'
+  ) THEN
+    ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE;
+  END IF;
+END$$;
+
+-- Expenses
+CREATE TABLE IF NOT EXISTS expenses (
+  id SERIAL PRIMARY KEY,
+  cashier_id INT REFERENCES users(id) ON DELETE SET NULL,
+  category VARCHAR(100),
+  description TEXT,
+  amount NUMERIC(12,2) NOT NULL,
+  expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Shifts
+CREATE TABLE IF NOT EXISTS shifts (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE SET NULL,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ,
+  status VARCHAR(20) DEFAULT 'open', -- open, closed
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Devices
+CREATE TABLE IF NOT EXISTS devices (
+  id SERIAL PRIMARY KEY,
+  device_id VARCHAR(200) UNIQUE NOT NULL,
+  user_id INT REFERENCES users(id) ON DELETE SET NULL,
+  device_name VARCHAR(200),
+  status VARCHAR(20) DEFAULT 'registered', -- registered, disabled
+  registered_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_expenses_cashier    ON expenses(cashier_id);
+CREATE INDEX IF NOT EXISTS idx_shifts_user         ON shifts(user_id);
+CREATE INDEX IF NOT EXISTS idx_devices_deviceid    ON devices(device_id);
+

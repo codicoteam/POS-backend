@@ -20,7 +20,7 @@ exports.login = async (req, res, next) => {
     if (!valid)
       return res.status(401).json({ message: 'Invalid email or password.' });
 
-    const payload = { id: user.id, name: user.name, role: user.role, email: user.email };
+    const payload = { id: user.id, name: user.name, role: user.role, email: user.email, must_change_password: user.must_change_password };
     const token   = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
     // Audit log
@@ -33,6 +33,7 @@ exports.login = async (req, res, next) => {
       token,
       expires_in: JWT_EXPIRES,
       user: payload,
+      must_change_password: user.must_change_password || false,
     });
   } catch (e) { next(e); }
 };
@@ -53,7 +54,7 @@ exports.register = async (req, res, next) => {
     if (!name || !email || !password || !role_id)
       return res.status(400).json({ message: 'name, email, password and role_id are required.' });
 
-    const user = await User.create({ name, email: email.toLowerCase().trim(), password, role_id });
+    const user = await User.create({ name, email: email.toLowerCase().trim(), password, role_id, must_change_password: true });
     res.status(201).json(user);
   } catch (e) { next(e); }
 };
