@@ -729,4 +729,33 @@ const swaggerSpec = {
   },
 };
 
+function stripSchemaExamples(obj) {
+  if (obj && typeof obj === 'object') {
+    if (Object.prototype.hasOwnProperty.call(obj, 'example')) {
+      delete obj.example;
+    }
+    for (const value of Object.values(obj)) {
+      stripSchemaExamples(value);
+    }
+  }
+}
+
+function stripResponseContent(spec) {
+  if (!spec.paths) return;
+  for (const pathItem of Object.values(spec.paths)) {
+    for (const operation of Object.values(pathItem)) {
+      if (operation && operation.responses) {
+        for (const response of Object.values(operation.responses)) {
+          if (response && response.content) {
+            delete response.content;
+          }
+        }
+      }
+    }
+  }
+}
+
+stripSchemaExamples(swaggerSpec.components);
+stripResponseContent(swaggerSpec);
+
 module.exports = swaggerSpec;
