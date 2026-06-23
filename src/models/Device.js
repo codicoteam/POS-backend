@@ -1,10 +1,10 @@
 const { query } = require('../config/database');
 
 const Device = {
-  async create({ device_id, user_id, device_name, status = 'registered' }) {
+  async create({ business_id, user_id, device_id, device_name, status = 'registered' }) {
     const { rows } = await query(
-      `INSERT INTO devices (device_id, user_id, device_name, status) VALUES ($1,$2,$3,$4) RETURNING *`,
-      [device_id, user_id || null, device_name || null, status]
+      `INSERT INTO devices (business_id, user_id, device_id, device_name, status) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [business_id || null, user_id || null, device_id, device_name || null, status]
     );
     return rows[0];
   },
