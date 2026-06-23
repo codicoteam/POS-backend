@@ -11,6 +11,55 @@
 
 ---
 
+## New Modules (Multi-tenant & Sync)
+
+### Businesses (`/api/businesses`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| POST | `/` | Create a new business (owner) | ✅ (Owner) |
+| GET | `/` | List businesses (owner/manager) | ✅ (Owner/Manager) |
+| GET | `/:id` | Get business details | ✅ (Owner/Manager) |
+
+### Subscriptions (`/api/subscriptions`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/plans` | List available subscription plans | ✅ |
+| POST | `/subscribe` | Create a subscription for a business | ✅ (Owner) |
+
+### Settings (`/api/settings`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/` | Get business settings | ✅ |
+| PUT | `/` | Create/update business settings | ✅ |
+
+### Notifications (`/api/notifications`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| GET | `/` | List notifications for business | ✅ |
+| POST | `/` | Create a notification | ✅ |
+
+### Barcodes (`/api/barcodes`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| POST | `/generate` | Generate barcode record | ✅ |
+| GET | `/print` | Trigger/placeholder for printing | ✅ |
+
+### Stock Receiving (`/api/stock`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| POST | `/receive` | Create stock receipt and items | ✅ (Owner/Manager) |
+
+### Refunds (`/api/refunds`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|----------------|
+| POST | `/` | Create a refund record | ✅ |
+
+### Sync Queue (`/api/sync/queue`)
+- Accepts payloads from offline devices: `{ type: 'sales'|'expenses'|'refunds', items: [...] }` or legacy `{ sales: [...] }`.
+- Server records entries in `sync_logs` and attempts to process each item. Successful items are committed; failures are reported per-item.
+
+---
+
 ## 🔐 Authentication
 
 All protected endpoints require a valid JWT token in the `Authorization` header:
