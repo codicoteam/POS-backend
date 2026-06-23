@@ -17,6 +17,13 @@ const expensesRoutes  = require('./routes/expensesRoutes');
 const shiftsRoutes    = require('./routes/shiftsRoutes');
 const devicesRoutes   = require('./routes/devicesRoutes');
 const syncRoutes      = require('./routes/syncRoutes');
+const businessRoutes  = require('./routes/businessRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const settingsRoutes  = require('./routes/settingsRoutes');
+const notificationsRoutes = require('./routes/notificationsRoutes');
+const barcodeRoutes   = require('./routes/barcodeRoutes');
+const stockRoutes     = require('./routes/stockRoutes');
+const refundsRoutes   = require('./routes/refundsRoutes');
 
 const app = express();
 
@@ -49,6 +56,13 @@ app.use('/api/expenses',  expensesRoutes);
 app.use('/api/shifts',    shiftsRoutes);
 app.use('/api/devices',   devicesRoutes);
 app.use('/api/sync',      syncRoutes);
+app.use('/api/businesses', businessRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/barcodes', barcodeRoutes);
+app.use('/api/stock', stockRoutes);
+app.use('/api/refunds', refundsRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route ' + req.originalUrl + ' not found' }));
 app.use(errorHandler);
