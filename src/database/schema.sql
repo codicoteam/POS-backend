@@ -8,6 +8,18 @@ CREATE TABLE IF NOT EXISTS roles (
   name VARCHAR(50) UNIQUE NOT NULL  -- owner, manager, cashier, inventory_clerk
 );
 
+-- Businesses
+CREATE TABLE IF NOT EXISTS businesses (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  email VARCHAR(255),
+  address TEXT,
+  subscription_plan_id INT,
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Users
 CREATE TABLE IF NOT EXISTS users (
   id            SERIAL PRIMARY KEY,
@@ -15,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
   email         VARCHAR(150) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   role_id       INT REFERENCES roles(id) ON DELETE SET NULL,
+  business_id   INT REFERENCES businesses(id) ON DELETE CASCADE,
   is_active     BOOLEAN DEFAULT TRUE,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   updated_at    TIMESTAMPTZ DEFAULT NOW()
@@ -22,29 +35,35 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Product Categories
 CREATE TABLE IF NOT EXISTS categories (
-  id         SERIAL PRIMARY KEY,
-  name       VARCHAR(100) UNIQUE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  id            SERIAL PRIMARY KEY,
+  business_id   INT REFERENCES businesses(id) ON DELETE CASCADE,
+  name          VARCHAR(100) NOT NULL,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (business_id, name)
 );
 
 -- Products
 CREATE TABLE IF NOT EXISTS products (
   id            SERIAL PRIMARY KEY,
+  business_id   INT REFERENCES businesses(id) ON DELETE CASCADE,
   name          VARCHAR(200) NOT NULL,
-  sku           VARCHAR(100) UNIQUE,
-  barcode       VARCHAR(100) UNIQUE,
+  sku           VARCHAR(100),
+  barcode       VARCHAR(100),
   category_id   INT REFERENCES categories(id) ON DELETE SET NULL,
   cost_price    NUMERIC(12,2) DEFAULT 0,
   selling_price NUMERIC(12,2) NOT NULL,
   description   TEXT,
   is_active     BOOLEAN DEFAULT TRUE,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ DEFAULT NOW()
+  updated_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (business_id, sku),
+  UNIQUE (business_id, barcode)
 );
 
 -- Inventory
 CREATE TABLE IF NOT EXISTS inventory (
   id                  SERIAL PRIMARY KEY,
+  business_id         INT REFERENCES businesses(id) ON DELETE CASCADE,
   product_id          INT REFERENCES products(id) ON DELETE CASCADE UNIQUE,
   quantity            INT DEFAULT 0 CHECK (quantity >= 0),
   low_stock_threshold INT DEFAULT 10,
@@ -54,6 +73,7 @@ CREATE TABLE IF NOT EXISTS inventory (
 -- Stock Movements
 CREATE TABLE IF NOT EXISTS stock_movements (
   id          SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   product_id  INT REFERENCES products(id) ON DELETE CASCADE,
   type        VARCHAR(30) NOT NULL,  -- sale, refund, adjustment, purchase
   quantity    INT NOT NULL,          -- positive = stock in, negative = stock out
@@ -65,6 +85,7 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 -- Customers
 CREATE TABLE IF NOT EXISTS customers (
   id          SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   name        VARCHAR(150) NOT NULL,
   phone       VARCHAR(30),
   email       VARCHAR(150),
@@ -76,6 +97,7 @@ CREATE TABLE IF NOT EXISTS customers (
 -- Sales
 CREATE TABLE IF NOT EXISTS sales (
   id             SERIAL PRIMARY KEY,
+  business_id    INT REFERENCES businesses(id) ON DELETE CASCADE,
   customer_id    INT REFERENCES customers(id) ON DELETE SET NULL,
   cashier_id     INT REFERENCES users(id) ON DELETE SET NULL,
   subtotal       NUMERIC(12,2) NOT NULL DEFAULT 0,
@@ -92,6 +114,7 @@ CREATE TABLE IF NOT EXISTS sales (
 -- Sale Items
 CREATE TABLE IF NOT EXISTS sale_items (
   id         SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   sale_id    INT REFERENCES sales(id) ON DELETE CASCADE,
   product_id INT REFERENCES products(id) ON DELETE SET NULL,
   quantity   INT NOT NULL,
@@ -102,6 +125,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
 -- Payments
 CREATE TABLE IF NOT EXISTS payments (
   id         SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   sale_id    INT REFERENCES sales(id) ON DELETE CASCADE,
   amount     NUMERIC(12,2) NOT NULL,
   method     VARCHAR(30) NOT NULL,
@@ -112,6 +136,7 @@ CREATE TABLE IF NOT EXISTS payments (
 -- Refunds
 CREATE TABLE IF NOT EXISTS refunds (
   id         SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   sale_id    INT REFERENCES sales(id) ON DELETE CASCADE,
   amount     NUMERIC(12,2) NOT NULL,
   reason     TEXT,
@@ -122,6 +147,7 @@ CREATE TABLE IF NOT EXISTS refunds (
 -- Receipts
 CREATE TABLE IF NOT EXISTS receipts (
   id         SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   sale_id    INT REFERENCES sales(id) ON DELETE CASCADE UNIQUE,
   receipt_no VARCHAR(50) UNIQUE NOT NULL,
   data       JSONB,
@@ -176,6 +202,7 @@ END$$;
 -- Expenses
 CREATE TABLE IF NOT EXISTS expenses (
   id SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   cashier_id INT REFERENCES users(id) ON DELETE SET NULL,
   category VARCHAR(100),
   description TEXT,
@@ -187,6 +214,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 -- Shifts
 CREATE TABLE IF NOT EXISTS shifts (
   id SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   user_id INT REFERENCES users(id) ON DELETE SET NULL,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ,
@@ -197,6 +225,7 @@ CREATE TABLE IF NOT EXISTS shifts (
 -- Devices
 CREATE TABLE IF NOT EXISTS devices (
   id SERIAL PRIMARY KEY,
+  business_id INT REFERENCES businesses(id) ON DELETE CASCADE,
   device_id VARCHAR(200) UNIQUE NOT NULL,
   user_id INT REFERENCES users(id) ON DELETE SET NULL,
   device_name VARCHAR(200),

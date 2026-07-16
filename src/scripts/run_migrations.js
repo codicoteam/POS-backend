@@ -21,6 +21,21 @@ async function run() {
     await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
     await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'cashier';");
 
+    console.log('Ensuring tenant columns exist on core business tables...');
+    await query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE products ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE inventory ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE customers ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE sales ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE sale_items ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE refunds ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE receipts ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE expenses ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE shifts ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+    await query("ALTER TABLE devices ADD COLUMN IF NOT EXISTS business_id INT REFERENCES businesses(id) ON DELETE CASCADE;");
+
     console.log('Ensuring subscription plans and subscriptions tables exist...');
     await query(`CREATE TABLE IF NOT EXISTS subscription_plans (
       id SERIAL PRIMARY KEY,

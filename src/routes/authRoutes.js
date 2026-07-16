@@ -5,13 +5,14 @@ const { requireRole }  = require('../middleware/roleMiddleware');
 
 // Public
 router.post('/login', c.login);
+router.post('/register', c.register);
 
 // Authenticated
 router.get('/me',             authenticate, c.me);
 router.put('/password',       authenticate, c.changePassword);
 
 // Owner only
-router.post('/register',                 authenticate, requireRole('owner'), c.register);
+router.post('/staff',                   authenticate, requireRole('owner'), c.createStaff);
 router.get('/users',                     authenticate, requireRole('owner', 'manager'), c.listUsers);
 router.put('/users/:id',                 authenticate, requireRole('owner'), c.updateUser);
 router.delete('/users/:id',              authenticate, requireRole('owner'), c.deactivateUser);

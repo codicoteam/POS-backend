@@ -17,7 +17,7 @@ async function authenticate(req, res, next) {
     if (!user) return res.status(401).json({ message: 'User not found.' });
     if (!user.is_active) return res.status(403).json({ message: 'Account is deactivated.' });
 
-    req.user = { id: user.id, name: user.name, email: user.email, role: user.role, must_change_password: user.must_change_password };
+    req.user = { id: user.id, name: user.name, email: user.email, role: user.role, business_id: user.business_id, must_change_password: user.must_change_password };
 
     // Enforce forced password change: allow password change endpoint only
     const isPasswordChangeEndpoint = req.path === '/api/auth/password' && req.method === 'PUT';

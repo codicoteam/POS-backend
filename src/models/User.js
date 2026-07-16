@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = {
   async findByEmail(email) {
     const { rows } = await query(
-      `SELECT u.*, r.name AS role, u.must_change_password
+      `SELECT u.*, r.name AS role, u.must_change_password, u.business_id
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.email = $1`,
@@ -15,7 +15,7 @@ const User = {
 
   async findById(id) {
     const { rows } = await query(
-      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role, u.must_change_password
+      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role, u.must_change_password, u.business_id
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.id = $1`,
@@ -26,7 +26,7 @@ const User = {
 
   async findAll() {
     const { rows } = await query(
-      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role, u.must_change_password
+      `SELECT u.id, u.name, u.email, u.is_active, u.created_at, r.name AS role, u.must_change_password, u.business_id
        FROM users u
        JOIN roles r ON r.id = u.role_id
        ORDER BY u.name`
@@ -34,13 +34,24 @@ const User = {
     return rows;
   },
 
-  async create({ name, email, password, role_id, must_change_password = false }) {
+  async create({ name, email, password, role_id, role, business_id, must_change_password = false }, client = null) {
+    const db = client ? client.query.bind(client) : query;
     const hash = await bcrypt.hash(password, 10);
-    const { rows } = await query(
-      `INSERT INTO users (name, email, password_hash, role_id, must_change_password)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, email`,
-      [name, email, hash, role_id, must_change_password]
+
+    let resolvedRoleId = role_id;
+    if (!resolvedRoleId && role) {
+      const roleResult = await db('SELECT id FROM roles WHERE name = $1', [role]);
+      if (!roleResult.rows[0]) {
+        throw new Error(`Unknown role: ${role}`);
+      }
+      resolvedRoleId = roleResult.rows[0].id;
+    }
+
+    const { rows } = await db(
+      `INSERT INTO users (name, email, password_hash, role_id, business_id, must_change_password)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, name, email, business_id`,
+      [name, email, hash, resolvedRoleId, business_id || null, must_change_password]
     );
     return rows[0];
   },
