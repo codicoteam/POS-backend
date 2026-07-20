@@ -126,9 +126,10 @@ const swaggerSpec = {
               schema: {
                 type: 'object',
                 properties: {
-                  currentPassword: { type: 'string' },
-                  newPassword: { type: 'string' },
+                  current_password: { type: 'string', example: 'CurrentPass123!' },
+                  new_password: { type: 'string', example: 'NewPass456!' },
                 },
+                required: ['current_password', 'new_password'],
               },
             },
           },
@@ -142,7 +143,34 @@ const swaggerSpec = {
     },
     '/api/auth/register': {
       post: {
-        summary: 'Register a new user',
+        summary: 'Register a new business owner and create a business tenant',
+        tags: ['Authentication'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'Owner Name' },
+                  email: { type: 'string', example: 'owner@example.com' },
+                  password: { type: 'string', example: 'StrongPass123!' },
+                  business_name: { type: 'string', example: 'Acme Store' },
+                },
+                required: ['name', 'email', 'password', 'business_name'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Business and owner created' },
+          '400': { description: 'Invalid request' },
+        },
+      },
+    },
+    '/api/auth/staff': {
+      post: {
+        summary: 'Create a staff user for the authenticated owner',
         tags: ['Authentication'],
         security: [{ BearerAuth: [] }],
         requestBody: {
@@ -152,20 +180,20 @@ const swaggerSpec = {
               schema: {
                 type: 'object',
                 properties: {
-                  name: { type: 'string' },
-                  email: { type: 'string' },
-                  password: { type: 'string' },
-                  role_id: { type: 'integer' },
+                  name: { type: 'string', example: 'Jane Cash' },
+                  email: { type: 'string', example: 'cashier@example.com' },
+                  role: { type: 'string', example: 'cashier', enum: ['manager', 'cashier', 'inventory_clerk'] },
                 },
-                required: ['name', 'email', 'password', 'role_id'],
+                required: ['name', 'email', 'role'],
               },
             },
           },
         },
         responses: {
-          '201': { description: 'User created' },
+          '201': { description: 'Staff account created' },
           '400': { description: 'Invalid request' },
           '401': { description: 'Unauthorized' },
+          '403': { description: 'Forbidden' },
         },
       },
     },
@@ -194,7 +222,7 @@ const swaggerSpec = {
                 properties: {
                   name: { type: 'string' },
                   email: { type: 'string' },
-                  role_id: { type: 'integer' },
+                  is_active: { type: 'boolean' },
                 },
               },
             },
@@ -228,9 +256,9 @@ const swaggerSpec = {
               schema: {
                 type: 'object',
                 properties: {
-                  password: { type: 'string' },
+                  new_password: { type: 'string' },
                 },
-                required: ['password'],
+                required: ['new_password'],
               },
             },
           },

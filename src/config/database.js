@@ -2,17 +2,18 @@ const { Pool } = require('pg');
 const env = require('./environment');
 
 const ssl = env.DB_SSL ? { rejectUnauthorized: false } : false;
+const password = env.DB_PASSWORD == null ? '' : String(env.DB_PASSWORD);
 
 // Prefer a single DATABASE_URL connection string (the standard on Render/Heroku);
 // fall back to individual DB_* variables for local development.
 const poolConfig = env.DATABASE_URL
-  ? { connectionString: env.DATABASE_URL, ssl }
+  ? { connectionString: String(env.DATABASE_URL), ssl }
   : {
-      host:     env.DB_HOST,
-      port:     env.DB_PORT,
-      database: env.DB_NAME,
-      user:     env.DB_USER,
-      password: env.DB_PASSWORD,
+      host:     String(env.DB_HOST),
+      port:     Number(env.DB_PORT),
+      database: String(env.DB_NAME),
+      user:     String(env.DB_USER),
+      password,
       ssl,
     };
 
